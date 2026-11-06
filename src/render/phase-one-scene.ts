@@ -1,4 +1,8 @@
 import * as THREE from "three";
+import { ThirdPersonOrbitCamera } from "../game/camera/third-person-orbit-camera";
+import { createPlayerAvatar } from "../game/player/player-avatar";
+import { PlayerController } from "../game/player/player-controller";
+import { PlayerInput } from "../input/player-input";
 
 export function createPhaseOneCamera(aspect = 1): THREE.PerspectiveCamera {
   const camera = new THREE.PerspectiveCamera(38, aspect, 0.1, 100);
@@ -21,9 +25,9 @@ export function createPhaseOneCube(): THREE.Mesh<THREE.BoxGeometry, THREE.MeshSt
   return cube;
 }
 
-export function createPhaseOneGround(): THREE.Mesh<THREE.CircleGeometry, THREE.MeshBasicMaterial> {
+export function createPhaseOneGround(radius = 2.8): THREE.Mesh<THREE.CircleGeometry, THREE.MeshBasicMaterial> {
   const ground = new THREE.Mesh(
-    new THREE.CircleGeometry(2.8, 64),
+    new THREE.CircleGeometry(radius, 64),
     new THREE.MeshBasicMaterial({ color: "#83c9bd", transparent: true, opacity: 0.045 }),
   );
   ground.rotation.x = -Math.PI / 2;
@@ -50,9 +54,16 @@ export function startPhaseOneScene(container: HTMLElement): void {
   scene.add(keyLight);
 
   const cube = createPhaseOneCube();
+  cube.position.set(3, -0.22, -2);
   scene.add(cube);
 
-  scene.add(createPhaseOneGround());
+  scene.add(createPhaseOneGround(18));
+
+  const avatar = createPlayerAvatar();
+  scene.add(avatar.root);
+  const playerController = new PlayerController(avatar.root);
+  const playerInput = new PlayerInput(container);
+  const orbitCamera = new ThirdPersonOrbitCamera(camera, avatar.cameraTarget, container);
 
   const resize = (): void => {
     const width = Math.max(container.clientWidth, 1);
@@ -67,10 +78,15 @@ export function startPhaseOneScene(container: HTMLElement): void {
   resize();
 
   const clock = new THREE.Clock();
+  const movement = new THREE.Vector2();
+  let previousTime = 0;
   renderer.setAnimationLoop(() => {
     const elapsed = clock.getElapsedTime();
     cube.rotation.y = 0.48 + elapsed * 0.22;
     cube.rotation.x = 0.28 + Math.sin(elapsed * 0.55) * 0.08;
+    playerController.update(playerInput.readMovement(movement), elapsed - previousTime, camera);
+    previousTime = elapsed;
+    orbitCamera.update();
     renderer.render(scene, camera);
   });
 }
