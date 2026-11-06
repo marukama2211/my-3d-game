@@ -5,17 +5,17 @@
 ## 現在の状態
 
 - ゲーム案、三人称視点、Three.js + TypeScript の方針は確認済みです。
-- Phase 1 の描画基盤を実装しました。Three.js で WebGL レンダラーを初期化し、ライト付きの立方体を表示・回転します。
-- TypeScript の型チェック、本番ビルド、生成 JavaScript の構文検査、4件の Node.js 単体テストに合格しました。
+- **Phase 1 完了:** Three.js の WebGL レンダラーで立方体と床を表示し、回転・画面サイズ追従を実装。AndroidブラウザでWebGL2と表示も確認済みです。
+- **Phase 2 完了:** Three.js のベクトル、行列、回転、Transform型を公開するゲーム用数学モジュールを追加しました。独自演算実装は持たず、Three.jsの機能を利用します。
+- `npm test` は8件成功。TypeScript型チェックと本番ビルドも通過しています。
+- **Phase 3 未着手:** ゲーム用カメラの追従・入力などを実装する段階です。
 - `npm run dev` は `127.0.0.1:5173` で待ち受けます。同じAndroid端末のブラウザから `http://127.0.0.1:5173/` でアクセスできます。
-- 実ブラウザでの WebGL コンテキスト取得、シェーダー実行、画面表示は未検証です。Phase 1 の状態と未確認項目は [`docs/DEVELOPMENT_LOG.md`](docs/DEVELOPMENT_LOG.md) を参照してください。
-- Phase 2 以降の機能は未実装で、Phase 1 のブラウザ依存確認が済むまで進みません。
 
 ## 技術構成
 
 - TypeScript、Three.js、Vite
 - Three.js の WebGLRenderer による WebGL 描画
-- Node.js 組み込みテストランナーと tsx による幾何・カメラ計算の検証
+- Node.js 組み込みテストランナーと tsx による検証
 
 ## ディレクトリ構成
 
@@ -30,10 +30,12 @@
 ├── docs/
 │   └── DEVELOPMENT_LOG.md
 ├── src/
-│   ├── app/       # 起動処理と画面スタイル
-│   └── render/    # Phase 1 の Three.js シーンと生成関数
-├── tests/         # Phase 1 のメッシュ・カメラ検証
-└── assets/        # モデル、テクスチャ、音声（現時点では空）
+│   ├── app/        # 起動処理と画面スタイル
+│   ├── render/     # Phase 1 の Three.js シーン
+│   └── game/
+│       └── math/   # Three.js 数学型のゲーム用エクスポート
+├── tests/          # Phase 1・2のメッシュ、カメラ、数学検証
+└── assets/         # モデル、テクスチャ、音声（現時点では空）
 ```
 
 ## 起動・確認方法
