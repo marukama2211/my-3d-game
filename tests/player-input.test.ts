@@ -4,9 +4,11 @@ import { Vector2 } from "three";
 import { KeyboardMovementInput } from "../src/input/keyboard-movement-input.ts";
 import { calculateStickVector } from "../src/input/touch-movement-input.ts";
 
-function keyEvent(type: string, key: string): Event {
+function keyEvent(type: string, key: string, code = ""): Event {
   const event = new Event(type, { cancelable: true });
   Object.defineProperty(event, "key", { value: key });
+  Object.defineProperty(event, "code", { value: code });
+  Object.defineProperty(event, "repeat", { value: false });
   return event;
 }
 
@@ -59,5 +61,16 @@ test("キー入力がページスクロールを起こさないよう既定動�
   const event = keyEvent("keydown", "ArrowDown");
   target.dispatchEvent(event);
   assert.equal(event.defaultPrevented, true);
+  input.dispose();
+});
+
+test("Spaceキーは押下時に一度だけジャンプ入力を生成する", () => {
+  const target = new EventTarget();
+  const input = new KeyboardMovementInput(target as unknown as Window);
+  const event = keyEvent("keydown", " ", "Space");
+  target.dispatchEvent(event);
+  assert.equal(event.defaultPrevented, true);
+  assert.equal(input.consumeJumpPressed(), true);
+  assert.equal(input.consumeJumpPressed(), false);
   input.dispose();
 });

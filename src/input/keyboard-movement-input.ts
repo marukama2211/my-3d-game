@@ -5,8 +5,14 @@ const MOVEMENT_KEYS = new Set(["w", "a", "s", "d", "arrowup", "arrowleft", "arro
 /** PCのキー入力を正規化された移動ベクトルへ変換する。 */
 export class KeyboardMovementInput {
   private readonly pressedKeys = new Set<string>();
+  private jumpQueued = false;
   private readonly onKeyDown = (event: KeyboardEvent): void => {
     const key = event.key.toLowerCase();
+    if (event.code === "Space") {
+      event.preventDefault();
+      if (!event.repeat) this.jumpQueued = true;
+      return;
+    }
     if (!MOVEMENT_KEYS.has(key)) return;
     event.preventDefault();
     this.pressedKeys.add(key);
@@ -14,7 +20,10 @@ export class KeyboardMovementInput {
   private readonly onKeyUp = (event: KeyboardEvent): void => {
     this.pressedKeys.delete(event.key.toLowerCase());
   };
-  private readonly onBlur = (): void => this.pressedKeys.clear();
+  private readonly onBlur = (): void => {
+    this.pressedKeys.clear();
+    this.jumpQueued = false;
+  };
 
   constructor(private readonly target: Window = window) {
     target.addEventListener("keydown", this.onKeyDown);
@@ -32,10 +41,17 @@ export class KeyboardMovementInput {
     return out;
   }
 
+  consumeJumpPressed(): boolean {
+    const pressed = this.jumpQueued;
+    this.jumpQueued = false;
+    return pressed;
+  }
+
   dispose(): void {
     this.target.removeEventListener("keydown", this.onKeyDown);
     this.target.removeEventListener("keyup", this.onKeyUp);
     this.target.removeEventListener("blur", this.onBlur);
     this.pressedKeys.clear();
+    this.jumpQueued = false;
   }
 }

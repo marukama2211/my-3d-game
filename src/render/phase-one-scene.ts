@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { ThirdPersonOrbitCamera } from "../game/camera/third-person-orbit-camera";
 import { createPlayerAvatar } from "../game/player/player-avatar";
 import { PlayerController } from "../game/player/player-controller";
+import { createCollisionTestArea } from "../game/world/collision-test-area";
 import { PlayerInput } from "../input/player-input";
 
 export function createPhaseOneCamera(aspect = 1): THREE.PerspectiveCamera {
@@ -53,17 +54,12 @@ export function startPhaseOneScene(container: HTMLElement): void {
   keyLight.position.set(-3, 5, 4);
   scene.add(keyLight);
 
-  const cube = createPhaseOneCube();
-  cube.position.set(3, -0.22, -2);
-  scene.add(cube);
-
-  scene.add(createPhaseOneGround(18));
-
   const avatar = createPlayerAvatar();
+  const collisionWorld = createCollisionTestArea(scene, avatar.root.position.y);
   scene.add(avatar.root);
-  const playerController = new PlayerController(avatar.root);
+  const playerController = new PlayerController(avatar.root, collisionWorld);
   const playerInput = new PlayerInput(container);
-  const orbitCamera = new ThirdPersonOrbitCamera(camera, avatar.cameraTarget, container);
+  const orbitCamera = new ThirdPersonOrbitCamera(camera, avatar.cameraTarget, container, collisionWorld);
 
   const resize = (): void => {
     const width = Math.max(container.clientWidth, 1);
@@ -82,11 +78,15 @@ export function startPhaseOneScene(container: HTMLElement): void {
   let previousTime = 0;
   renderer.setAnimationLoop(() => {
     const elapsed = clock.getElapsedTime();
-    cube.rotation.y = 0.48 + elapsed * 0.22;
-    cube.rotation.x = 0.28 + Math.sin(elapsed * 0.55) * 0.08;
-    playerController.update(playerInput.readMovement(movement), elapsed - previousTime, camera);
+    const deltaSeconds = elapsed - previousTime;
+    playerController.update(
+      playerInput.readMovement(movement),
+      deltaSeconds,
+      camera,
+      playerInput.consumeJumpPressed(),
+    );
     previousTime = elapsed;
-    orbitCamera.update();
+    orbitCamera.update(deltaSeconds);
     renderer.render(scene, camera);
   });
 }

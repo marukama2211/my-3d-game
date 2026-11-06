@@ -3,6 +3,7 @@ import test from "node:test";
 import { Object3D, PerspectiveCamera, Vector2, Vector3 } from "three";
 import { PlayerController } from "../src/game/player/player-controller.ts";
 import { createPlayerAvatar } from "../src/game/player/player-avatar.ts";
+import { CollisionWorld } from "../src/game/physics/collision-world.ts";
 
 function createCamera(): PerspectiveCamera {
   const camera = new PerspectiveCamera(50, 1, 0.1, 100);
@@ -12,9 +13,13 @@ function createCamera(): PerspectiveCamera {
   return camera;
 }
 
+function createController(player: Object3D, world = new CollisionWorld(0)): PlayerController {
+  return new PlayerController(player, world);
+}
+
 test("カメラ前方へ移動し、フレーム時間に応じた距離を進む", () => {
   const player = new Object3D();
-  const controller = new PlayerController(player);
+  const controller = createController(player);
   const before = player.position.clone();
   controller.update(new Vector2(0, 1), 1 / 60, createCamera());
 
@@ -26,7 +31,7 @@ test("カメラ前方へ移動し、フレーム時間に応じた距離を進�
 
 test("移動方向はカメラの水平回転に追従する", () => {
   const player = new Object3D();
-  const controller = new PlayerController(player);
+  const controller = createController(player);
   const camera = createCamera();
   camera.rotation.set(0, Math.PI / 2, 0);
   camera.updateMatrixWorld(true);
@@ -39,7 +44,7 @@ test("移動方向はカメラの水平回転に追従する", () => {
 
 test("モデルのローカル-Z正面を4方向の進行方向へ向ける", () => {
   const player = new Object3D();
-  const controller = new PlayerController(player);
+  const controller = createController(player);
   const forward = new Vector3(0, 0, -1);
 
   for (const cameraYaw of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
@@ -58,7 +63,7 @@ test("モデルのローカル-Z正面を4方向の進行方向へ向ける", ()
 
 test("進行方向が±180度の境界を越えても姿勢は短い角度差に留まる", () => {
   const player = new Object3D();
-  const controller = new PlayerController(player);
+  const controller = createController(player);
   const epsilon = 0.01;
   const camera = createCamera();
 
@@ -76,7 +81,7 @@ test("進行方向が±180度の境界を越えても姿勢は短い角度差に
 
 test("斜め移動の速度を正規化し、フレーム停止後の大移動を制限する", () => {
   const diagonal = new Object3D();
-  const controller = new PlayerController(diagonal);
+  const controller = createController(diagonal);
   controller.update(new Vector2(1, 1).normalize(), 1 / 60, createCamera());
   assert.ok(Math.abs(diagonal.position.length() - controller.speed / 60) < 1e-10);
 
@@ -89,7 +94,7 @@ test("入力がないと移動・旋回しない", () => {
   const player = new Object3D();
   player.rotation.y = 0.4;
   const initialRotation = player.rotation.y;
-  const controller = new PlayerController(player);
+  const controller = createController(player);
   controller.update(new Vector2(), 1 / 60, createCamera());
   assert.deepEqual(player.position.toArray(), [0, 0, 0]);
   assert.equal(player.rotation.y, initialRotation);

@@ -29,7 +29,7 @@ export class TouchMovementInput {
   private readonly stickKnob: HTMLDivElement;
   private readonly movement = new Vector2();
   private movementPointerId: number | null = null;
-  private cameraPointerId: number | null = null;
+  private readonly cameraPointerIds = new Set<number>();
   private anchorX = 0;
   private anchorY = 0;
   private radius = MAX_STICK_RADIUS;
@@ -71,21 +71,21 @@ export class TouchMovementInput {
 
   private readonly onCameraDown = (event: PointerEvent): void => {
     if (event.pointerType === "mouse") return;
-    if (this.cameraPointerId !== null || event.button !== 0) {
+    if (this.cameraPointerIds.size >= 2 || event.button !== 0) {
       event.preventDefault();
       event.stopPropagation();
       return;
     }
-    this.cameraPointerId = event.pointerId;
+    this.cameraPointerIds.add(event.pointerId);
   };
 
   private readonly onCameraEnd = (event: PointerEvent): void => {
-    if (event.pointerId === this.cameraPointerId) this.cameraPointerId = null;
+    this.cameraPointerIds.delete(event.pointerId);
   };
 
   private readonly onWindowBlur = (): void => {
     this.resetMovement();
-    this.cameraPointerId = null;
+    this.cameraPointerIds.clear();
   };
   private readonly onVisibilityChange = (): void => {
     if (document.visibilityState === "hidden") this.onWindowBlur();
