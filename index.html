@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#10151b" />
+    <meta name="description" content="ブラウザで動作する3Dゲームの開発プロトタイプ" />
+    <title>3Dブラウザゲーム — Phase 1</title>
+  </head>
+  <body>
+    <main id="app" aria-label="3D表示プロトタイプ">
+      <div class="scene-label">
+        <p class="eyebrow">PHASE 01 · WEBGL</p>
+        <h1>3Dレンダリング基盤</h1>
+        <p class="hint">Three.js による立方体の表示確認</p>
+      </div>
+      <div id="render-error" class="render-error" role="alert" hidden></div>
+      <div class="corner-note" aria-hidden="true">REAL-TIME SCENE</div>
+    </main>
+    <script type="module" src="/src/app/main.ts"></script>
+  </body>
+</html>
